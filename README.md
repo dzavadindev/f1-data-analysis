@@ -29,7 +29,7 @@ lap_times.csv
 races_carried_out.csv
 ```
 
-The driver and team API snapshot is included in `raw/api/api.json`. The CSV and TXT inputs were provided for a university assignment and were not version-controlled. To run the pipeline and verify its output today, I would need to regenerate or recover those raw files. If there is interest in exploring the results, I may add a reproducible way to source them.
+The driver and team API snapshot is included in `raw/api/api.json`. _The CSV and TXT inputs were provided for a university assignment and were not version-controlled. To run the pipeline and verify its output today, I would need to regenerate or recover those raw files. If there is interest in exploring the results, I may add a reproducible way to source them._
 
 ## Run locally
 
