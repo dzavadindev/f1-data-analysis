@@ -1,8 +1,10 @@
 FROM node:current-alpine
 
+WORKDIR /app
+COPY package.json ./
+RUN npm install --omit=dev
 COPY . .
-RUN "yarn"
 
 EXPOSE 3000
 
-CMD [ "yarn", "start" ]
+CMD ["node", "server.js"]

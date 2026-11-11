@@ -2,6 +2,8 @@
 
 # This retrieves the parent dir of the script (parent of 'loader' dir)
 PROJECT_DIR=$(dirname "$(dirname "$(readlink -f "$0")")")
+cd "$PROJECT_DIR" || exit 1
+export DBT_PROFILES_DIR="$PROJECT_DIR"
 
 NODE_SERVER_PATH="$PROJECT_DIR/raw/api"
 LOADER_PATH="$PROJECT_DIR/loader/load_data.py"
