@@ -1,82 +1,63 @@
-# ADM Exam 2
+# F1 Data Analysis
 
-## Introduction 
+An F1 data pipeline and dashboard built with Python, DuckDB, dbt, and Evidence. It combines a bundled driver and team API snapshot with race results and race control files, then presents two historical analyses: driver incident counts and constructor points projections.
 
-This preload has been created as an alternative to the dev.container. It uses poetry as its package manager, to help ensure compatibility on different machines.
+## What it does
 
-You can create your python scripts in the base of the project. Please ensure, that you name logically.
+1. `loader/load_data.py` reads CSV and TXT files and queries the local API in `raw/api/`, loading both into `db/database.db`.
+2. dbt models in `models/` clean the raw tables, build a star schema, and produce incident and constructor prediction reports.
+3. Evidence reads the report models through `sources/reports/` and renders the pages in `pages/`.
 
-## Install poetry    
+The incident report counts race control entries marked `NOTED` and `INCIDENT` for each driver. The constructor report estimates end-of-season points from average points earned so far and shows a best-case points total. These projections are simple heuristics based on the supplied historical data, not live forecasts.
 
-1. Install poetry on your computer: [link](https://python-poetry.org/docs/#installation)
-   1. *Poetry is a tool for dependency management and packaging in Python. It allows you to declare the libraries your project depends on* [Taken from [python-poetry.org)](https://python-poetry.org/docs/)]
-   2. Poetry has been setup for this project, and to run libraries you will first call `poetry run` i.e. if you need to run `duckbd` you should run `poetry run duckdb`
-2. **Step 1** The configuration file has setup the correct pachackes etc... please fun the following command in this project after poetry installed on your computer.
-   1. `poetry install`
-3. If you change the name of your project folder, also change the name in the pyproject.toml file to the name you renamed the folder.
-   
-## Source data
+## Prerequisites and source data
 
-The `raw` folder has got the `API` folder containing the API with some of your source data. Please copy the aditional source files into this folder to load from.
+- Python 3.11 and [Poetry](https://python-poetry.org/docs/#installation)
+- Docker with a running daemon
+- Node.js 18 or newer and npm
+- Bash and `curl` for the loader script
 
-Inside the `API` folder is instructions on running the API.
+The race CSV and TXT files are **not included** in this repository. Put them in `raw/output/` before running the pipeline. The loader expects race control files ending in `Race_racecontrol.txt`, lap files ending in `Race_laps.csv`, weather files ending in `weather.csv`, and these CSV files:
 
-## Evidence
+```text
+circuits.csv
+constructor_results.csv
+driver_results.csv
+driver_sprint_results.csv
+drivers_teams.csv
+lap_times.csv
+races_carried_out.csv
+```
 
-### To start Evidence
+The driver and team API snapshot is included in `raw/api/api.json`. Without the external CSV and TXT files, a fresh clone cannot regenerate the database or dashboards.
 
-`poetry run npm install;poetry run npm run sources; poetry run npm exec evidence dev -- --open /`
+## Run locally
 
-#### Terminal commands while evidence is running
+From the repository root, after adding the source data:
 
-  press r + enter to restart the server
-  press u + enter to show server url   
-  press o + enter to open in browser   
-  press c + enter to clear console     
-  press q + enter to quit
+```sh
+bash loader/run.sh init
+npm run dev
+```
 
-### Learning More
+The `init` run creates the Poetry environment and installs Python packages. The script builds and starts the local API container on port `3000`, loads DuckDB, runs `dbt build` (including its schema tests), refreshes Evidence sources, and removes the API container when it exits. Evidence then starts a local dashboard server; use the URL printed by `npm run dev`.
 
-- [Docs](https://docs.evidence.dev/)
-- [Github](https://github.com/evidence-dev/evidence)
-- [Slack Community](https://slack.evidence.dev/)
-- [Evidence Home Page](https://www.evidence.dev)
+For later data refreshes, run `bash loader/run.sh` and restart the Evidence dev server. The script expects its database profile in the repository's `profiles.yml` and writes the DuckDB file to `db/database.db`.
 
-## DBT
+To run dbt independently after loading data:
 
-Modify profiles.yml to point to your database.
+```sh
+poetry run dbt build --project-dir . --profiles-dir .
+```
 
-### Usefull commands
+## Repository map
 
-- `poetry run dbt build` 
-  - This will build and check queries etc...
-- `poetry run dbt test`
-  - This will run the tests
-- `poetry run dbt run`
-  - This will run dbt
-- `poetry run dbt docs generate`
-  - This will generate your documentation
+| Path | Purpose |
+| --- | --- |
+| `raw/api/` | Bundled JSON snapshot and local API server. |
+| `loader/` | Data ingestion and pipeline runner. |
+| `models/staging/`, `models/intermediate/`, `models/star/` | dbt transformations and dimensions/facts. |
+| `models/reports/` | Incident counts and constructor points projections. |
+| `sources/reports/`, `pages/` | Evidence queries and dashboard pages. |
 
-### Resources:
-- Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
-- Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
-- Join the [chat](https://community.getdbt.com/) on Slack for live discussions and support
-- Find [dbt events](https://events.getdbt.com) near you
-- Check out [the blog](https://blog.getdbt.com/) for the latest news on dbt's development and best practices
-
-## Python
-*Please note, <name> should be replaced with the name of your file.*
-
-Create your python file(s)
-to run:
-- `poetry run python <name>.py`
-
-## duckdb
-*Please note, <name> should be replaced with the name of your file.*
-
-To create a duckdb file
-- Option 1: Create it using your python script
-- Option 2: `poetry run duckdb <name>.duckdb`
-
-To open a duckdb file
-- `duckdb <name>.ddb`
+The source data represents a limited historical snapshot. In particular, the original constructor-results input used for the 2023 example covered only part of that season, so projections should be interpreted with that limitation in mind.

@@ -5,14 +5,14 @@ Then enter your terminal (suggest running everything via WSL) and run the follow
 
 ``` bash
 python --version
-./run.sh init
+bash loader/run.sh init
 npm run dev
 ```
 
 Subsequential runs to update data, rerun models and resource evidence can be run with 
 
 ``` bash
-./run.sh
+bash loader/run.sh
 ```
 
 # Introduction
@@ -27,7 +27,7 @@ First, lets run thought the process of getting all the different data sources li
 
 ## Loading 
 
-Starting off with loading the data, `assignment-data.zip` contains csv and txt files, detailing things like race control logs, constructor earned points, race information, weather details, lap times etc.. Loading csv files using pandas and duckdb is pretty easy, as csv files have a table-like structure, which is easily conversable into dataframes, which in turn can easily be made into a database table.
+Starting off with loading the data, an external archive contains CSV and TXT files detailing race control logs, constructor points, race information, weather, and lap times. These input files are not included in the repository. Loading CSV files with pandas and DuckDB is straightforward because their tabular structure maps to data frames and database tables.
 
 txt files (being race control logs) need some formatting, like determining patterns within the line, and using regular expressions to filter out the relevant information. I decided to only take the incident logs from the race control, as there is no elegant way to structure a table to contain all the different things race control keeps track of. Even the file format begin txt instead of csv proves it.
 
